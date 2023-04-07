@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoomScannerWeb", "RoomScannerWeb.csproj", "{56D51553-11F7-41D0-987E-BF5B5BF383C7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{56D51553-11F7-41D0-987E-BF5B5BF383C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56D51553-11F7-41D0-987E-BF5B5BF383C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56D51553-11F7-41D0-987E-BF5B5BF383C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56D51553-11F7-41D0-987E-BF5B5BF383C7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5D27D1BC-B801-4AD2-8623-B2E57F12AF70}
+	EndGlobalSection
+EndGlobal

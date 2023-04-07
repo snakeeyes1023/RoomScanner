@@ -1,0 +1,31 @@
+﻿<button @onclick=TriggerScan class="btn btn-outline-info">Déclencher un scan</button>
+<button @onclick=ClearScanHistory class="btn btn-outline-danger">Supprimer l'historique</button>
+
+@code {
+    [Inject]
+    public IScanService ScanService { get; set; } = null!;
+
+    public void TriggerScan()
+    {
+        try
+        {
+            ScanService.TriggerScan();
+        }
+        catch (Exception ex)
+        {
+            
+        }
+    }
+
+    public void ClearScanHistory()
+    {
+        try
+        {
+            ScanService.ClearScanHistory();
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+}
