@@ -9,11 +9,10 @@ namespace RoomScanner
     struct ScannerContext
     {
     public:
-        ScannerContext(int trigPin, int echoPin, int servoPin, int step)
+        ScannerContext(int trigPin, int echoPin, int step)
         {
             this->trigPin = trigPin;
             this->echoPin = echoPin;
-            this->servoPin = servoPin;
             this->step = step;
 
             this->initialResults = ScanResult();
@@ -23,7 +22,6 @@ namespace RoomScanner
         {
             this->trigPin = 0;
             this->echoPin = 0;
-            this->servoPin = 0;
             this->step = 0;
 
             this->initialResults = ScanResult();
@@ -31,7 +29,6 @@ namespace RoomScanner
 
         int trigPin;
         int echoPin;
-        int servoPin;
         int step;
 
         ScanResult initialResults;

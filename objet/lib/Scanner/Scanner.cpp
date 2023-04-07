@@ -2,24 +2,24 @@
 
 namespace RoomScanner
 {
-
-    Scanner::Scanner(RoomScanner::ScannerContext context)
+    Scanner::Scanner(RoomScanner::ScannerContext context, Servo &servo)
     {
-        configureServo();
         this->context = context;
+        this->servo = servo;
+        this->servo.write(0);
     }
 
     ScanResult Scanner::scan()
     {
         // foreach step, move the servo and get the distance (360 / step)
-        int angleStep = 360 / context.step;
+        int angleStep = 180 / context.step;
 
         ScanResult scanResult = ScanResult();
 
         for (int i = 0; i < context.step; i++)
         {
             // move the servo to the next position
-            currentAngle += angleStep;
+            moveServoTo(currentAngle + angleStep);
 
             // get the distance
             UltrasonicResult result = this->getDistanceWithCurrentPos();
@@ -28,12 +28,11 @@ namespace RoomScanner
             scanResult.addResult(result);
         }
 
-        currentAngle = 0;
+        moveServoTo(0);
 
         scanResult.print();
 
         return scanResult;
-        
     }
 
     void Scanner::calibrate()
@@ -63,20 +62,24 @@ namespace RoomScanner
         return result;
     }
 
-    void Scanner::configureServo()
+    void Scanner::moveServoTo(int angle)
     {
+        this->servo.write(angle);
+        this->currentAngle = angle;
+        delay(100);
     }
 
-    bool Scanner::verifyIntrusion()
+    int Scanner::getMaximalVariation(ScanResult &scanResult)
     {
-        Serial.println("Verifying intrusion...");
-        ScanResult scanResult = this->scan();
+        Serial.println("calculate maximal variance...");
+
+        int max = 0;
 
         for (int i = 0; i < scanResult.results.size(); i++)
         {
-            // get 
+            // get
             UltrasonicResult current = scanResult.results[i];
-            
+
             // search for the same angle in the initial results
             for (int j = 0; j < context.initialResults.results.size(); j++)
             {
@@ -85,17 +88,15 @@ namespace RoomScanner
                 {
                     // if the distance is greater than the initial distance, then there is an intrusion
                     int distance = current.distance - initial.distance;
-                    if (abs(distance) > 10)
+
+                    if (abs(distance) > max)
                     {
-                        Serial.println("Intrusion detected!");
-                        Serial.print("Distance: ");
-                        Serial.println(distance);
-                        return true;
+                        max = abs(distance);
                     }
                 }
             }
         }
 
-        return false;
+        return max;
     }
 }
