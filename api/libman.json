@@ -5,6 +5,10 @@
     {
       "library": "bootstrap@5.2.3",
       "destination": "wwwroot/css/bootstrap/"
+    },
+    {
+      "library": "izitoast@1.4.0",
+      "destination": "wwwroot/css/izitoast/"
     }
   ]
 }
