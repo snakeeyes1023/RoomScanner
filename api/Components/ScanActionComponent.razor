@@ -8,6 +8,9 @@
     [Inject]
     public IJSRuntime JSRuntime { get; set; } = null!;
 
+    /// <summary>
+    /// Déclenche un scan sur le Arduino et affiche une notification avec la réponse
+    /// </summary>
     public void TriggerScan()
     {
         try
@@ -39,6 +42,9 @@
         }
     }
 
+    /// <summary>
+    /// Supprimer tous les données de la base de donnée
+    /// </summary>
     public void ClearScanHistory()
     {
         try

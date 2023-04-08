@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using RoomScannerWeb.ActionFilters;
 using RoomScannerWeb.Data;
 using RoomScannerWeb.Data.Models;
 using SQLite;
@@ -16,6 +17,7 @@ namespace RoomScannerWeb
 
             // Add services to the container.
             builder.Services.AddSingleton<IScanService, ScanService>();
+            builder.Services.AddScoped<IPValidationActionFilter>();
 
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
