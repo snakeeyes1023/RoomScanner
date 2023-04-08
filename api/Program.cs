@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using RoomScannerWeb.Data;
+using RoomScannerWeb.Data.Models;
+using SQLite;
 
 namespace RoomScannerWeb
 {
@@ -10,9 +12,11 @@ namespace RoomScannerWeb
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.InitialiseLocalDatabase();
+
             // Add services to the container.
             builder.Services.AddSingleton<IScanService, ScanService>();
-            
+
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
             builder.Services.AddControllers();
@@ -45,6 +49,19 @@ namespace RoomScannerWeb
             app.MapFallbackToPage("/_Host");
 
             app.Run();
+        }
+    }
+
+    public static class ProgramExtensions
+    {
+        public static void InitialiseLocalDatabase(this IServiceCollection collection)
+        {
+            var databasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "roomscanner.db");
+            var db = new SQLiteConnection(databasePath);
+            
+            db.CreateTable<ScanResultEntity>();
+
+            collection.AddSingleton(db);
         }
     }
 }
