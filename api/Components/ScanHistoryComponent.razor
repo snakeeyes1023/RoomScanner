@@ -5,6 +5,7 @@
         <tr>
             <th scope="col">#</th>
             <th scope="col">Local est vide</th>
+            <th scope="col">Variation maximale</th>
             <th scope="col">Date de vérification</th>
         </tr>
     </thead>
@@ -16,6 +17,7 @@
                 <tr>
                     <th scope="row">@item.Id</th>
                     <td>@(item.IsLocalEmpty ? "Oui" : "Non")</td>
+                    <td>@item.MaxDistanceVariation pouces</td>
                     <td>@item.ScanDate</td>
                 </tr>
             }

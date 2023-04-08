@@ -5,15 +5,37 @@
     [Inject]
     public IScanService ScanService { get; set; } = null!;
 
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; } = null!;
+
     public void TriggerScan()
     {
         try
         {
-            ScanService.TriggerScan();
+            if (ScanService.TriggerScan() is ScanResultEntity scanResult)
+            {
+                JSRuntime.InvokeVoidAsync("iziToast.show", new
+                {
+                    title = "Scan déclenché",
+                    message = $"Le scan a été déclenché avec succès. Détection : {(scanResult.IsLocalEmpty ? "Détecté" : "Non détecté")}",
+                    color = "green",
+                    position = "topRight"
+                });
+            }
+            else
+            {
+                throw new ArgumentNullException("Résultat du scan invalide");
+            }
         }
         catch (Exception ex)
         {
-            
+            JSRuntime.InvokeVoidAsync("iziToast.show", new
+            {
+                title = "Erreur",
+                message = ex.Message,
+                color = "red",
+                position = "topRight"
+            });      
         }
     }
 
@@ -22,10 +44,24 @@
         try
         {
             ScanService.DeleteAll();
+
+            JSRuntime.InvokeVoidAsync("iziToast.show", new
+            {
+                title = "Donnée supprimée",
+                message = $"Les données ont bien été supprimée.",
+                color = "green",
+                position = "topRight"
+            });
         }
         catch (Exception ex)
         {
-
+            JSRuntime.InvokeVoidAsync("iziToast.show", new
+            {
+                title = "Erreur",
+                message = ex.Message,
+                color = "red",
+                position = "topRight"
+            });
         }
     }
 }
