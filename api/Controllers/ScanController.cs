@@ -33,7 +33,7 @@ namespace RoomScannerWeb.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    ScanResultModel entity = new ScanResultModel(model);
+                    ScanResultEntity entity = new ScanResultEntity(model);
 
                     _scanService.InsertScanResult(entity);
 

@@ -28,37 +28,26 @@
     [Inject]
     public IScanService ScanService { get; set; } = null!;
 
-    private IEnumerable<ScanResultModel>? ScanHistory { get; set; }
+    private IEnumerable<ScanResultEntity>? ScanHistory { get; set; }
 
     protected override void OnInitialized()
     {
-        ScanHistory = ScanService.GetScanResultModels();
+        ScanHistory = ScanService.GetAllEntities();
 
-        ScanService.OnScanEvent += ScanService_OnScanEvent;
-        ScanService.OnClearEvent += ScanService_OnClearEvent;
+        ScanService.OnDataHasChanged += ScanService_OnDataHasChanged;
     }
 
-    private void ScanService_OnScanEvent(object? sender, ScanResultModel e)
+    private void ScanService_OnDataHasChanged(object? sender, EventArgs e)
     {
         InvokeAsync(() =>
         {
-            ScanHistory = ScanService.GetScanResultModels();
-            StateHasChanged();
-        });
-    }
-
-    private void ScanService_OnClearEvent()
-    {
-        InvokeAsync(() =>
-        {
-            ScanHistory = ScanService.GetScanResultModels();
+            ScanHistory = ScanService.GetAllEntities();
             StateHasChanged();
         });
     }
 
     public void Dispose()
     {
-        ScanService.OnScanEvent -= ScanService_OnScanEvent;
-        ScanService.OnClearEvent -= ScanService_OnClearEvent;
+        ScanService.OnDataHasChanged -= ScanService_OnDataHasChanged;
     }
 }

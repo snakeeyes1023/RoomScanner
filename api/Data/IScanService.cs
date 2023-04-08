@@ -4,12 +4,11 @@ namespace RoomScannerWeb.Data
 {
     public interface IScanService
     {
-        event EventHandler<ScanResultModel>? OnScanEvent;
-        event Action? OnClearEvent;
+        event EventHandler? OnDataHasChanged;
 
-        void InsertScanResult(ScanResultModel scanResult);
-        ScanResultModel TriggerScan();
-        IEnumerable<ScanResultModel> GetScanResultModels();
-        void ClearScanHistory();
+        void InsertScanResult(ScanResultEntity scanResult);
+        ScanResultEntity TriggerScan();
+        IEnumerable<ScanResultEntity> GetAllEntities();
+        void DeleteAll();
     }
 }
