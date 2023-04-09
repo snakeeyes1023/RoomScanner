@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using RoomScannerWeb.ActionFilters;
 using RoomScannerWeb.Data;
 using RoomScannerWeb.Data.Models;
 
@@ -6,6 +8,7 @@ namespace RoomScannerWeb.Controllers
 {
     [ApiController]
     [Route("api/scans/[Action]")]
+    [TypeFilter(typeof(IPValidationActionFilter))]
     public class ScanController : Controller
     {
         private readonly IScanService _scanService;
@@ -14,15 +17,12 @@ namespace RoomScannerWeb.Controllers
         {
             _scanService = scanService;
         }
-        /// <summary>
-        /// Indexes this instance.
-        /// </summary>
-        /// <returns></returns>
+
         [HttpGet]
-        [ActionName("hello-world")]
-        public IActionResult Index()
+        [ActionName("")]
+        public IActionResult GetAll()
         {
-            return Json(new { message = "Hello from ScanController" });
+            return Json(_scanService.GetAllEntities());
         }
 
         [HttpPost]

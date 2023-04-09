@@ -1,5 +1,7 @@
 ﻿using RoomScannerWeb.Data.Models;
 using SQLite;
+using System.Net;
+using System;
 
 namespace RoomScannerWeb.Data
 {
@@ -69,19 +71,35 @@ namespace RoomScannerWeb.Data
         /// </summary>
         public void ArchiveData()
         {
-            // keep only the last 100 scans
             var scans = GetAllEntities().ToList();
 
-            if (scans.Count > 100)
-            {
-                var scansToDelete = scans.Skip(100).ToList();
-                foreach (var scan in scansToDelete)
-                {
-                    _connection.Delete(scan);
-                }
-            }
+            if (!scans.Any()) return;
+
+            DeleteExcessScans(scans);
+
+            scans = GetAllEntities().Skip(30).ToList();
+
+            DeleteConsecutiveScansWithSameState(scans);
 
             OnDataHasChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void DeleteExcessScans(List<ScanResultEntity> scans)
+        {
+            if (scans.Count <= 1000) return;
+
+            var scansToDelete = scans.Skip(1000).ToList();
+            foreach (var scan in scansToDelete) _connection.Delete(scan);
+        }
+
+        private void DeleteConsecutiveScansWithSameState(List<ScanResultEntity> scans)
+        {
+            bool? lastState = null;
+            foreach (var scan in scans)
+            {
+                if (lastState != null && scan.IsLocalEmpty == lastState) _connection.Delete(scan);
+                lastState = scan.IsLocalEmpty;
+            }
         }
     }
 }
