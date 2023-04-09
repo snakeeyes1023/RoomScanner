@@ -1,3 +1,6 @@
+using Hangfire;
+using Hangfire.Common;
+using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using RoomScannerWeb.ActionFilters;
@@ -24,6 +27,12 @@ namespace RoomScannerWeb
             builder.Services.AddControllers();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddHangfireServer();
+            builder.Services.AddHangfire(config =>
+            {
+                config.UseMemoryStorage();
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -40,10 +49,15 @@ namespace RoomScannerWeb
 
             app.UseRouting();
 
+            // Add This
+            app.UseHangfireDashboard();
+
+            app.EnableLocalDatabaseArchivation();
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blazor API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "RoomScanner API V1");
             });
 
             app.MapControllers();
@@ -64,6 +78,12 @@ namespace RoomScannerWeb
             db.CreateTable<ScanResultEntity>();
 
             collection.AddSingleton(db);
+        }
+
+        public static void EnableLocalDatabaseArchivation(this WebApplication app)
+        {
+            var manager = new RecurringJobManager();
+            manager.AddOrUpdate<ScanService>("db-archive", x => x.ArchiveData(), Cron.Daily());
         }
     }
 }

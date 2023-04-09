@@ -73,38 +73,33 @@ namespace RoomScannerWeb.Data
         {
             var scans = GetAllEntities().ToList();
 
-            bool? lastState = null;
-            int totalProcess = 0;
+            if (!scans.Any()) return;
 
-            // supprimer tous les scans qui ont le même état que le précédent
+            DeleteExcessScans(scans);
+
+            scans = GetAllEntities().Skip(30).ToList();
+
+            DeleteConsecutiveScansWithSameState(scans);
+
+            OnDataHasChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void DeleteExcessScans(List<ScanResultEntity> scans)
+        {
+            if (scans.Count <= 1000) return;
+
+            var scansToDelete = scans.Skip(1000).ToList();
+            foreach (var scan in scansToDelete) _connection.Delete(scan);
+        }
+
+        private void DeleteConsecutiveScansWithSameState(List<ScanResultEntity> scans)
+        {
+            bool? lastState = null;
             foreach (var scan in scans)
             {
-                if (totalProcess > 30
-                    && lastState != null
-                    && scan.IsLocalEmpty == lastState)
-                {
-                    _connection.Delete(scan);
-                }
-
-                // Mettre à jour lastState avec l'état actuel
+                if (lastState != null && scan.IsLocalEmpty == lastState) _connection.Delete(scan);
                 lastState = scan.IsLocalEmpty;
-                totalProcess++;
             }
-
-            // Supprimer les plus anciens scans si on a plus de 1000 scan
-            scans = GetAllEntities().ToList();
-            
-            if (scans.Count > 1000)
-            {
-                var scansToDelete = scans.Skip(1000).ToList();
-
-                foreach (var scan in scansToDelete)
-                {
-                    _connection.Delete(scan);
-                }
-            }
-            
-            OnDataHasChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }
