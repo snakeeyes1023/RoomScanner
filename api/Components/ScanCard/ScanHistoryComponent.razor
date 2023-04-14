@@ -1,0 +1,35 @@
+﻿
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Local est vide</th>
+            <th scope="col">Variation maximale</th>
+            <th scope="col">Date de vérification</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (ScanResults.Any())
+        {
+            @foreach (var item in ScanResults)
+            {
+                <tr>
+                    <th scope="row">@item.Id</th>
+                    <td>@(item.IsLocalEmpty ? "Oui" : "Non")</td>
+                    <td>@item.MaxDistanceVariation pouces</td>
+                    <td>@item.ScanDate</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+
+    [Inject]
+    public IScanService ScanService { get; set; } = null!;
+
+    [Parameter]
+    [EditorRequired]
+    public IEnumerable<ScanResultEntity> ScanResults { get; set; } = Enumerable.Empty<ScanResultEntity>();
+}

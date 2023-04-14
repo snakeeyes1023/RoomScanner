@@ -1,0 +1,75 @@
+﻿<button @onclick=TriggerScan class="btn btn-info mx-1">Déclencher un scan</button>
+<button @onclick=ClearScanHistory class="btn btn-light mx-1">Supprimer l'historique</button>
+
+@code {
+    [Inject]
+    public IScanService ScanService { get; set; } = null!;
+
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; } = null!;
+
+    /// <summary>
+    /// Déclenche un scan sur le Arduino et affiche une notification avec la réponse
+    /// </summary>
+    public async Task TriggerScan()
+    {
+        try
+        {
+            var result = await ScanService.TriggerScan();
+            
+            if (!string.IsNullOrWhiteSpace(result))
+            {
+                await JSRuntime.InvokeVoidAsync("iziToast.show", new
+                {
+                    title = "Scan déclenché",
+                    message = $"Le scan a été déclenché avec succès. La réponse du Arduino est: {result}",
+                    color = "green",
+                    position = "topRight"
+                });
+            }
+            else
+            {
+                throw new ArgumentNullException("Résultat du scan invalide");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("iziToast.show", new
+            {
+                title = "Erreur",
+                message = ex.Message,
+                color = "red",
+                position = "topRight"
+            });      
+        }
+    }
+
+    /// <summary>
+    /// Supprimer tous les données de la base de donnée
+    /// </summary>
+    public void ClearScanHistory()
+    {
+        try
+        {
+            ScanService.DeleteAll();
+
+            JSRuntime.InvokeVoidAsync("iziToast.show", new
+            {
+                title = "Donnée supprimée",
+                message = $"Les données ont bien été supprimée.",
+                color = "green",
+                position = "topRight"
+            });
+        }
+        catch (Exception ex)
+        {
+            JSRuntime.InvokeVoidAsync("iziToast.show", new
+            {
+                title = "Erreur",
+                message = ex.Message,
+                color = "red",
+                position = "topRight"
+            });
+        }
+    }
+}

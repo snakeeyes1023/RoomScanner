@@ -1,0 +1,88 @@
+﻿@implements IDisposable
+
+<div class="card">
+    <div class="main-info">
+        <img class="scan-image" src="/images/scanner-view.jpg" />
+
+        <div class="card-content">
+            <div class="scan-card-body">
+                <h5 class="scan-card-title">RoomScanner V1.0.0 <span class="badge rounded-pill bg-light text-dark my-auto">Disponnible</span></h5>
+                <p class="scan-card-text">
+                    Local vide :
+                    @if (IsCurrentlyEmpty != null)
+                    {
+                        <span class="badge rounded-pill bg-light text-dark">
+                            @(IsCurrentlyEmpty.Value ? "Libre" : "Remplis")
+                        </span>
+                    }
+                </p>
+            </div>
+
+            <div class="scan-action">
+                <ScanActionComponent />
+            </div>
+        </div>
+    </div>
+
+    <div class="scan-details">
+        <h6>Dernier résultat de scan</h6>
+        <div class="grid-data">
+            <ScanHistoryComponent ScanResults="ScanResults" />
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Inject]
+    public IScanService ScanService { get; set; } = null!;
+
+    private IEnumerable<ScanResultEntity> ScanResults { get; set; } = Enumerable.Empty<ScanResultEntity>();
+
+    private DateTime? LastCall {
+        get
+        {
+            return ScanResults.FirstOrDefault()?.ScanDate;
+        }
+    }
+
+    private bool? IsCurrentlyEmpty
+    {
+        get
+        {
+            return ScanResults.FirstOrDefault()?.IsLocalEmpty;
+        }
+    }
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        ScanService.OnDataHasChanged += UpdateStatus;
+    }
+
+    private void UpdateStatus()
+    {
+        InvokeAsync(() =>
+        {
+            ScanResults = ScanService.GetAllScanResultEntities();
+            StateHasChanged();
+        });
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (firstRender)
+        {
+            UpdateStatus();
+        }
+    }
+
+    public void Dispose()
+    {
+        ScanService.OnDataHasChanged -= UpdateStatus;
+    }
+}

@@ -3,10 +3,13 @@ using Hangfire.Common;
 using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Configuration;
 using RoomScannerWeb.ActionFilters;
-using RoomScannerWeb.Data;
-using RoomScannerWeb.Data.Models;
+using RoomScannerWeb.Data.Entitites;
+using RoomScannerWeb.Data.Helpers;
+using RoomScannerWeb.Data.Services;
 using SQLite;
+using System.Reflection;
 
 namespace RoomScannerWeb
 {
@@ -20,6 +23,8 @@ namespace RoomScannerWeb
 
             // Add services to the container.
             builder.Services.AddSingleton<IScanService, ScanService>();
+            builder.Services.Configure<ScanSetting>(builder.Configuration.GetSection("ScannerInfo"));
+
             builder.Services.AddScoped<IPValidationActionFilter>();
 
             builder.Services.AddRazorPages();
@@ -76,6 +81,7 @@ namespace RoomScannerWeb
             var db = new SQLiteConnection(databasePath);
             
             db.CreateTable<ScanResultEntity>();
+            db.CreateTable<ScanIntrusionEntity>();
 
             collection.AddSingleton(db);
         }

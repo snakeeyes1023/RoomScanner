@@ -11,10 +11,11 @@ namespace RoomScanner
 
     ScanResult Scanner::scan()
     {
-        // foreach step, move the servo and get the distance (360 / step)
         int angleStep = 180 / context.step;
 
         ScanResult scanResult = ScanResult();
+
+        moveServoTo(0);
 
         for (int i = 0; i < context.step; i++)
         {
@@ -28,7 +29,7 @@ namespace RoomScanner
             scanResult.addResult(result);
         }
 
-        moveServoTo(0);
+        moveServoTo(90);
 
         scanResult.print();
 
@@ -66,7 +67,7 @@ namespace RoomScanner
     {
         this->servo.write(angle);
         this->currentAngle = angle;
-        delay(100);
+        delay(300);
     }
 
     int Scanner::getMaximalVariation(ScanResult &scanResult)

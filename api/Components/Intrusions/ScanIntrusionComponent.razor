@@ -1,0 +1,70 @@
+﻿@implements IDisposable
+
+<div class="card">
+    <div class="card-content">
+        <div class="scan-card-body">
+            <h6><b>Dernière intrusions</b></h6>
+
+            <div class="intrusion">
+                @foreach (var intrusion in Intrusions)
+                {
+                    <span>@intrusion.IntrusionDate</span>
+                    <hr />
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<AlertModalComponent @ref=IntrusionComponent />
+
+@code {
+
+    [Inject]
+    public IScanService ScanService { get; set; } = null!;
+
+    private IEnumerable<ScanIntrusionEntity> Intrusions { get; set; } = Enumerable.Empty<ScanIntrusionEntity>();
+
+    private AlertModalComponent? IntrusionComponent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        ScanService.OnInstrusionsHasChanged += OnIntrusion;
+    }
+
+    protected void OnIntrusion()
+    {
+        UpdateIntrusions();
+
+        InvokeAsync(async () =>
+        {
+            await IntrusionComponent?.Show(4000);
+        });
+    }
+
+    private void UpdateIntrusions()
+    {
+        InvokeAsync(() =>
+        {
+            Intrusions = ScanService.GetAllIntrusionEntities();
+            StateHasChanged();
+        });
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (firstRender)
+        {
+            UpdateIntrusions();
+        }
+    }
+
+    public void Dispose()
+    {
+        ScanService.OnInstrusionsHasChanged -= OnIntrusion;
+    }
+}

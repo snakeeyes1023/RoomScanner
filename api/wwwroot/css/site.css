@@ -1,87 +1,203 @@
-@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 html, body {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 15px;
-    background: #0a192f;
-    color: #b9c6e3;
+    background: #ffff;
+    color: #1d1d1f;
 }
-
-
-/* Container pour les cartes */
-.card-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-}
-
-/* Carte */
-.card {
-    box-sizing: border-box;
-    background-color: #172a46;
-    border-radius: 10px;
-    padding: 16px;
-    width: 100%;
-    min-height: 200px;
-    transition: box-shadow 0.3s ease-in-out;
-    box-shadow: 0 12px 18px rgba(0, 0, 0, 0.15), 0 6px 8px rgba(0, 0, 0, 0.1);
-}
-
-    .card h1 {
-        font-size: 1.4rem;
-        font-weight: 700;
-    }
 
 
 .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6, tr, th {
-    color: #b9c6e3;
+    color: #1d1d1f;
+    outline: none;
+}
+
+/**=========== CUSTOM BUTTON ========== */
+
+.btn-info {
+    --bs-btn-color: #ffff;
+    --bs-btn-bg: #0071e3;
+    --bs-btn-border-color: #0071e3;
+    --bs-btn-hover-color: #ffff;
+    --bs-btn-hover-bg: #0071e3;
+    --bs-btn-hover-border-color: #0071e3;
+    --bs-btn-focus-shadow-rgb: 11,172,204;
+    --bs-btn-active-color: #ffff;
+    --bs-btn-active-bg: #3dd5f3;
+    --bs-btn-active-border-color: #25cff2;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #ffff;
+    --bs-btn-disabled-bg: #0071e3;
+    --bs-btn-disabled-border-color: #0071e3;
+    border-radius: 20px !important;
+}
+.btn-light {
+    --bs-btn-color: #000;
+    --bs-btn-bg: #f8f9fa;
+    --bs-btn-border-color: #f8f9fa;
+    --bs-btn-hover-color: #000;
+    --bs-btn-hover-bg: #d3d4d5;
+    --bs-btn-hover-border-color: #c6c7c8;
+    --bs-btn-focus-shadow-rgb: 211,212,213;
+    --bs-btn-active-color: #000;
+    --bs-btn-active-bg: #c6c7c8;
+    --bs-btn-active-border-color: #babbbc;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #000;
+    --bs-btn-disabled-bg: #f8f9fa;
+    --bs-btn-disabled-border-color: #f8f9fa;
+    border-radius: 20px !important;
 }
 
 
-/* Styliser la balise <cite> */
-cite {
-    font-style: italic;
-    font-size: 0.9em;
-    color: #333;
+
+/*======= CARDS ==========*/ 
+.card {
+    background-color: #f2f2f2;
+    border-radius: 10px;
+    padding: 10px;
+    border: none;
 }
 
-/* Styliser la balise <blockquote> */
-blockquote {
-    padding: 0.5em 1em;
-    border-left: 3px solid #ccc;
-    background-color: #172a46;
-    font-style: italic;
-    font-size: 1.1em;
-    color: #666;
+.scan-details {
+    margin-top: 20px;
+    padding: 20px;
+    border-top: 1px solid #d2d2d7;
+    width: 100%;
 }
 
-/* Ajouter des guillemets à la balise <q> */
-blockquote {
-    quotes: "“" "”";
+.card .main-info {
+    display: flex;
+    max-height: 300px;
+    width: 100%;
+    padding: 0;
+    margin: 0;
 }
 
+.scan-card-title {
+    font-weight: 700;
+    color: #1d1d1f;
+}
+
+.scan-details h6 {
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.scan-card-text {
+    font-weight: 500;
+    color: #404045;
+}
+
+.scan-image {
+    height: 300px;
+    width: auto;
+    border-radius: 10px;
+
+}
+
+.scan-card-body {
+    min-width: 300px;
+}
+
+.card-content {
+    padding: 30px;
+}
+
+.scan-action {
+    width: 100%;
+    align-items: flex-end;
+}
+
+    .scan-action .btn {
+        float: right;
+    }
+
+.card .card-content {
+    display: flex;
+    width: 100%;
+}
 
 .grid-data {
     max-height: 500px;
     overflow-y: scroll;
 }
 
-/* Personnalisation de la barre de défilement */
-.custom-scrollbar::-webkit-scrollbar, body::-webkit-scrollbar {
-    width: 8px;
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    overflow: auto;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+.modal-dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
-    background-color: #4c6880;
-    border-radius: 4px;
-}
-
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover {
-        background-color: #6092a1;
+@keyframes sirenAnimation {
+    0% {
+        color: #3a3ae9;
     }
+
+    25% {
+        color: #e93a74;
+    }
+
+    50% {
+        color: #3ae9e4;
+    }
+
+    75% {
+        color: #e93a74;
+    }
+
+    100% {
+        color: #3a3ae9;
+    }
+}
+
+.siren-animation {
+    animation: sirenAnimation 2s infinite;
+    background: linear-gradient(90deg, #3a3ae9, #e93a74, #3ae9e4, #e93a74);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-dialog {
+    width: 90%;
+    max-width: 400px;
+}
+
+.modal-content {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.modal-body {
+    padding: 2rem;
+}

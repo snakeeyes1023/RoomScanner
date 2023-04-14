@@ -1,0 +1,30 @@
+﻿@if (IsAlarmTriggered)
+{
+    <div class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h4 class="text-center">ALARME DÉCLENCHEE!</h4>
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle siren-animation" style="font-size: 5rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool IsAlarmTriggered;
+
+    public async Task Show(int totalTime)
+    {
+        IsAlarmTriggered = true;
+        StateHasChanged();
+
+        await Task.Delay(totalTime);
+
+        IsAlarmTriggered = false;
+        StateHasChanged();
+    }
+}

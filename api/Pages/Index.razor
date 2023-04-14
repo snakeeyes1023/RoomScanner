@@ -2,45 +2,18 @@
 
 <PageTitle>Projet final Jonathan Côté</PageTitle>
 
-<div class="container py-5">
+<div class="container-fluid py-5">
     <div class="row">
-        <div class="col-12">
-            <div class="text-center">
-                <h1>Projet Final | Jonathan Côté</h1>
+        <div class="col-lg-3">
+            <div>
+                <ProjectInfoComponent />
+            </div>
+            <div class="mt-4">
+                <ScanIntrusionComponent />
             </div>
         </div>
-        <div class="col-12">
-            <a href="/swagger" target="_blank" class="btn btn-outline-warning mb-2 float-end">Voir la documentation API (Swagger)</a>
-            <a href="/hangfire" target="_blank" class="btn btn-outline-warning mb-2 float-end me-2">Voir les tâches Hangfire</a>
-        </div>
-        <div class="col-12 ">
-            <blockquote cite="chatgpt" class="text-center">
-                Le projet "Détecteur d'objets connecté" vise à développer un dispositif IoT capable de détecter la présence d'objets dans une pièce et de transmettre ces informations à une application mobile et une API. L'objectif principal est de s'assurer qu'une pièce a été complètement vidée avant de procéder à d'autres opérations, telles que le nettoyage, la rénovation ou le déménagement.
-            </blockquote>
-        </div>
-    </div>
-
-    <hr />
-
-    <div class="row">
-        <div class="col-12">
-            <h4>Déclencher une action</h4>
-            <ScanActionComponent />
-        </div>
-    </div>
-
-    <hr />
-
-    <div class="row mt-2">
-        <div class="col-12">
-            <div class="card">
-                <h1>Dernières accès</h1>
-                <p>Voici les données des derniers scan effectué</p>
-                 
-                <div class="grid-data pr-3 custom-scrollbar">
-                    <ScanHistoryComponent />
-                </div>
-            </div>
+        <div class="col-lg-9">
+            <ScanComponent />
         </div>
     </div>
 </div>

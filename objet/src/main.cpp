@@ -24,6 +24,7 @@ char pass[] = "jomysecure$";
 int status = WL_IDLE_STATUS;
 
 WiFiClient wifi;
+WiFiServer server(80);
 
 // ip du PI
 char ip[] = "192.168.0.238";
@@ -37,29 +38,17 @@ Servo servo;
 
 /**
  * define the pins
- *
  */
 #define TRIG_PIN 7
 #define ECHO_PIN 6
 #define SERVO_PIN 9
+#define LUMINOSITY_PIN A0
 
-/**
- * @brief Fait clignoter une LED pendant un certain temps et un certain nombre de fois
- *
- * @param pin  Broche de la LED
- * @param delayTime  Temps en millisecondes entre chaque clignotement
- * @param repeat Nombre de fois que la LED clignote
- */
-void blinkLed(pin_size_t pin, int delayTime, int repeat = 3)
-{
-  for (int i = 0; i < repeat; i++)
-  {
-    digitalWrite(pin, HIGH);
-    delay(delayTime);
-    digitalWrite(pin, LOW);
-    delay(delayTime);
-  }
-}
+unsigned long scanDelayMillis = 1000 * 60 * 5;
+unsigned long lastScanMillis = 0;
+
+bool boxIsOpen = false;
+int luminosityOpenState = 900;
 
 /**
  * Affiche les informations de connexion au réseau Wi-Fi
@@ -85,25 +74,8 @@ void printWifiStatus()
   Serial.println(ip);
 }
 
-/**
- * Envoie la valeur valeur au PI
- * @author Jonathan Côté
- * Inspiré de Christiane Lagacé <christiane.lagace@hotmail.com>
- */
-void sendDataToPI(int maximalVariation, bool isLocalEmpty)
-{
-  DynamicJsonDocument doc(2048);
-  doc["isLocalEmpty"] = isLocalEmpty;
-  doc["maximalVariationDistance"] = maximalVariation;
-
-  String content_type = "application/json";
-  String json = "";
-
-  serializeJson(doc, json);
-
-  client.post("/api/scans", content_type, json);
-
-  // code d'état HTTP
+void printHttpResponse(HttpClient &client){
+    // code d'état HTTP
   int etat_http = client.responseStatusCode();
   Serial.print("Code d'état HTTP : ");
   Serial.println(etat_http);
@@ -114,17 +86,110 @@ void sendDataToPI(int maximalVariation, bool isLocalEmpty)
   Serial.println(reponse);
 }
 
+/**
+ * Envoie la valeur valeur au PI
+ * @author Jonathan Côté
+ * Inspiré de Christiane Lagacé <christiane.lagace@hotmail.com>
+ */
+void sendDataToPI(int maximalVariation)
+{
+  DynamicJsonDocument doc(2048);
+  doc["maximalVariationDistance"] = maximalVariation;
+
+  String json = "";
+
+  serializeJson(doc, json);
+
+  client.post("/api/scans",  "application/json" , json);
+
+  printHttpResponse(client);
+}
+
+/**
+ * @brief Envoie une requête au PI pour indiquer que le scanner a été infiltré
+ * 
+ */
+void sendInfiltrationToPI()
+{
+  client.post("/api/scans/infiltrations", "application/json", "{}");
+  printHttpResponse(client);
+}
+
+/**
+ * @brief Vérifie si le scanner a été infiltré
+ * 
+ * @return true  si le scanner a été infiltré
+ * @return false  si le scanner n'a pas été infiltré
+ */
+bool getCurrentBoxState()
+{
+  int luminosity = analogRead(LUMINOSITY_PIN);
+  return luminosity > luminosityOpenState;
+}
+
+/**
+ * @brief Vérifie si le PI a envoyé une requête pour lancer un scan
+ *
+ * @return true  si le PI a envoyé une requête pour lancer un scan
+ * @return false  si le PI n'a pas envoyé de requête pour lancer un scan
+ */
+bool hasReceivedScanRequest()
+{
+  WiFiClient client = server.available();
+  bool triggerScan = false;
+
+  if (client)
+  {
+    String currentLine = "";
+
+    while (client.connected())
+    {
+      if (client.available())
+      {
+        char c = client.read();
+
+        if (c == '\n')
+        {
+          if (currentLine.length() == 0)
+          {
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println("Connection: close");
+            client.println("Content-Length: 2");
+            client.println("\r\nok");
+            break;
+          }
+          else
+          {
+            currentLine = "";
+          }
+        }
+        else if (c != '\r')
+        {
+          currentLine += c;
+        }
+
+        if (currentLine.endsWith("POST /trigger-scan"))
+        {
+          triggerScan = true;
+        }
+      }
+    }
+
+    client.flush();
+    client.stop();
+  }
+
+  return triggerScan;
+}
+
 void setup()
 {
   Serial.begin(9600);
-  while (!Serial)
-    ;
 
   servo.attach(SERVO_PIN);
 
   pinMode(LED_BUILTIN, OUTPUT);
-  blinkLed(LED_BUILTIN, 500, 3);
-
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 
@@ -135,6 +200,10 @@ void setup()
     Serial.println(ssid);
     status = WiFi.begin(ssid, pass);
   }
+
+  server.begin();
+
+  printWifiStatus();
 
   RoomScanner::ScannerContext context(TRIG_PIN, ECHO_PIN, 5);
 
@@ -147,13 +216,27 @@ void setup()
 
 void loop()
 {
-  delay(2000);
+  unsigned long millisActu = millis();
+  bool delaiDepasse = millisActu - lastScanMillis > scanDelayMillis;
 
-  RoomScanner::ScanResult scanResult = scanner->scan();
+  if (hasReceivedScanRequest() || delaiDepasse)
+  {
+    RoomScanner::ScanResult scanResult = scanner->scan();
 
-  int maxVariance = scanner->getMaximalVariation(scanResult);
+    int maxVariance = scanner->getMaximalVariation(scanResult);
 
-  bool isLocalEmpty = maxVariance < 10;
+    sendDataToPI(maxVariance);
 
-  sendDataToPI(maxVariance, isLocalEmpty);
+    lastScanMillis = millisActu;
+  }
+
+  if(getCurrentBoxState() != boxIsOpen) {
+
+    boxIsOpen = !boxIsOpen;
+
+    if (boxIsOpen)
+    {
+      sendInfiltrationToPI();
+    }
+  }
 }
