@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @file main.cpp
  * @author Jonathan Côté
@@ -18,23 +20,27 @@
 #include <SPI.h>
 #include "ScanResult.h"
 #include <ArduinoJson.h>
+#include <SD.h>
 
-char ssid[] = "jomysecure";
-char pass[] = "jomysecure$";
+char ssid[] = "mesloc";
+char pass[] = "8199981542";
 int status = WL_IDLE_STATUS;
 
 WiFiClient wifi;
 WiFiServer server(80);
 
 // ip du PI
-char ip[] = "192.168.0.238";
-int port = 9010;
+char ip[] = "172.20.10.2";
+int port = 45455;
 
 HttpClient client = HttpClient(wifi, ip, port);
 
 RoomScanner::Scanner *scanner;
 
 Servo servo;
+
+File scannerDataFile;
+char* scannerDataFileName = "capteur.txt";
 
 /**
  * define the pins
@@ -43,6 +49,7 @@ Servo servo;
 #define ECHO_PIN 6
 #define SERVO_PIN 9
 #define LUMINOSITY_PIN A0
+#define SD_CARD_PIN 4
 
 unsigned long scanDelayMillis = 1000 * 60 * 5;
 unsigned long lastScanMillis = 0;
@@ -74,16 +81,43 @@ void printWifiStatus()
   Serial.println(ip);
 }
 
-void printHttpResponse(HttpClient &client){
-    // code d'état HTTP
-  int etat_http = client.responseStatusCode();
-  Serial.print("Code d'état HTTP : ");
-  Serial.println(etat_http);
+/**
+ * @brief Enregistre le scan (json) dans le fichier capteur.txt
+*/
+void saveScanInFile(String scanInJson){
+    scannerDataFile = SD.open(scannerDataFileName, FILE_WRITE);
 
-  // response
-  String reponse = client.responseBody();
-  Serial.print("Réponse : ");
-  Serial.println(reponse);
+    if (scannerDataFile) {
+      scannerDataFile.println(scanInJson);
+      scannerDataFile.close();
+    } else {
+      Serial.println("Impossible d'ouvrir le fichier.");
+    }
+}
+
+/**
+ * @brief Synchronise le fichier capteur.txt avec le PI
+*/
+void syncScanFile() {
+    scannerDataFile = SD.open(scannerDataFileName, FILE_READ);
+
+    if (scannerDataFile) {
+      while (scannerDataFile.available()) {
+        String line = scannerDataFile.readStringUntil('\n');
+        
+        client.post("/api/scans",  "application/json" , line);
+
+        if(client.responseStatusCode() != 200)
+        {
+          scannerDataFile.close();
+          return;
+        }
+      }
+      scannerDataFile.close();
+      SD.remove(scannerDataFileName);
+    } else {
+      Serial.println("Impossible d'ouvrir le fichier");
+    }
 }
 
 /**
@@ -91,19 +125,27 @@ void printHttpResponse(HttpClient &client){
  * @author Jonathan Côté
  * Inspiré de Christiane Lagacé <christiane.lagace@hotmail.com>
  */
-void sendDataToPI(int maximalVariation)
+void sendScanToPI(int maximalVariation)
 {
+  // preparation du json de scan
   DynamicJsonDocument doc(2048);
   doc["maximalVariationDistance"] = maximalVariation;
-
   String json = "";
-
   serializeJson(doc, json);
 
+  // tentative d'enregistrement du scan
   client.post("/api/scans",  "application/json" , json);
 
-  printHttpResponse(client);
+  // si le PI n'est pas disponible, on sauvegarde le scan dans un fichier
+  if(client.responseStatusCode() != 200)
+  {
+    saveScanInFile(json);
+  }
+  else {
+    syncScanFile();
+  }
 }
+
 
 /**
  * @brief Envoie une requête au PI pour indiquer que le scanner a été infiltré
@@ -112,11 +154,10 @@ void sendDataToPI(int maximalVariation)
 void sendInfiltrationToPI()
 {
   client.post("/api/scans/infiltrations", "application/json", "{}");
-  printHttpResponse(client);
 }
 
 /**
- * @brief Vérifie si le scanner a été infiltré
+ * @brief Vérifie si le scanner a été infiltré grace à la luminosité
  * 
  * @return true  si le scanner a été infiltré
  * @return false  si le scanner n'a pas été infiltré
@@ -183,6 +224,17 @@ bool hasReceivedScanRequest()
   return triggerScan;
 }
 
+/**
+ * @brief Lance un scan et envoie les données au PI
+**/
+void startScan() {
+  RoomScanner::ScanResult scanResult = scanner->scan();
+
+  int maxVariance = scanner->getMaximalVariation(scanResult);
+
+  sendScanToPI(maxVariance);
+}
+
 void setup()
 {
   Serial.begin(9600);
@@ -192,6 +244,11 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
+  
+  if (!SD.begin(SD_CARD_PIN)) {
+    Serial.println("Impossible de communiquer avec le lecteur de carte.");
+    while (1);
+  }
 
   // branchement au Wi-Fi
   while (status != WL_CONNECTED)
@@ -211,6 +268,7 @@ void setup()
 
   delay(2000);
 
+  // Fait un scan afin de calibrer le scanner
   scanner->calibrate();
 }
 
@@ -219,17 +277,14 @@ void loop()
   unsigned long millisActu = millis();
   bool delaiDepasse = millisActu - lastScanMillis > scanDelayMillis;
 
+  // si le PI a envoyé une requête pour lancer un scan ou si le délai est dépassé
   if (hasReceivedScanRequest() || delaiDepasse)
   {
-    RoomScanner::ScanResult scanResult = scanner->scan();
-
-    int maxVariance = scanner->getMaximalVariation(scanResult);
-
-    sendDataToPI(maxVariance);
-
+    startScan();
     lastScanMillis = millisActu;
   }
 
+  // vérifie si le scanner a été infiltré
   if(getCurrentBoxState() != boxIsOpen) {
 
     boxIsOpen = !boxIsOpen;

@@ -4,6 +4,11 @@
 #include "UltrasonicResult.h"
 #include <Arduino.h>
 
+/**
+ * @brief Results d'un scan complet (tous les angles)
+ * 
+ * @param results Vecteur de UltrasonicResult
+ */
 namespace RoomScanner
 {
     struct ScanResult
@@ -20,11 +25,20 @@ namespace RoomScanner
             this->results = std::vector<UltrasonicResult>();
         }
 
+        /**
+         * @brief Ajoute un UltrasonicResult au vecteur de résultats
+         * 
+         * @param result 
+         */
         void addResult(UltrasonicResult result)
         {
             this->results.push_back(result);
         }
 
+        /**
+         * @brief Impression des résultats dans le moniteur série
+         * 
+         */
         void print()
         {
             // print the results in serial

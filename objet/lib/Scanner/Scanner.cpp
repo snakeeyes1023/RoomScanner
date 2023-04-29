@@ -19,13 +19,11 @@ namespace RoomScanner
 
         for (int i = 0; i < context.step; i++)
         {
-            // move the servo to the next position
+            // déplace le servo à l'angle suivant
             moveServoTo(currentAngle + angleStep);
 
-            // get the distance
+            // lit la distance avec le capteur ultrasonique et l'ajoute au résultat
             UltrasonicResult result = this->getDistanceWithCurrentPos();
-
-            // add the result to the scan result
             scanResult.addResult(result);
         }
 
@@ -72,22 +70,19 @@ namespace RoomScanner
 
     int Scanner::getMaximalVariation(ScanResult &scanResult)
     {
-        Serial.println("calculate maximal variance...");
-
         int max = 0;
 
         for (int i = 0; i < scanResult.results.size(); i++)
         {
-            // get
             UltrasonicResult current = scanResult.results[i];
 
-            // search for the same angle in the initial results
+            // parcoure la distance initiale pour cet angle
             for (int j = 0; j < context.initialResults.results.size(); j++)
             {
                 UltrasonicResult initial = context.initialResults.results[j];
                 if (initial.angle == current.angle)
                 {
-                    // if the distance is greater than the initial distance, then there is an intrusion
+                    // calcule la différence entre les deux distances
                     int distance = current.distance - initial.distance;
 
                     if (abs(distance) > max)

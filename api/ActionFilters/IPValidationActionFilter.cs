@@ -4,6 +4,10 @@ using System.Net;
 
 namespace RoomScannerWeb.ActionFilters
 {
+    /// <summary>
+    /// Permet de valider que l'utilisateur actuelle est une ip valide
+    /// </summary>
+    /// <seealso cref="Microsoft.AspNetCore.Mvc.Filters.ActionFilterAttribute" />
     public class IPValidationActionFilter : ActionFilterAttribute
     {
         private readonly IConfiguration _configuration;
