@@ -3,6 +3,9 @@ using SQLite;
 
 namespace RoomScannerWeb.Data.Entitites
 {
+    /// <summary>
+    /// Entité pour les résultats de scan
+    /// </summary>
     public class ScanResultEntity
     {
         #region Props 

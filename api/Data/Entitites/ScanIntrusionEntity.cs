@@ -2,6 +2,9 @@
 
 namespace RoomScannerWeb.Data.Entitites
 {
+    /// <summary>
+    /// Entité pour les intrusions dans la boîte du scan
+    /// </summary>
     public class ScanIntrusionEntity
     {
         #region Props

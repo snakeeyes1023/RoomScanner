@@ -34,16 +34,25 @@
         ScanService.OnInstrusionsHasChanged += OnIntrusion;
     }
 
+    /// <summary>
+    /// Lorsque qu'une intrustion a lieu
+    /// </summary>
     protected void OnIntrusion()
     {
         UpdateIntrusions();
 
-        InvokeAsync(async () =>
+        if (Intrusions.Any())
         {
-            await IntrusionComponent?.Show(4000);
-        });
+            InvokeAsync(async () =>
+            {
+                await IntrusionComponent?.Show(4000);
+            });
+        }
     }
 
+    /// <summary>
+    /// Récupère la liste de tous les intrusions
+    /// </summary>
     private void UpdateIntrusions()
     {
         InvokeAsync(() =>
