@@ -9,8 +9,10 @@
 #include <Servo.h>
 
 /**
- * @brief Contexte du scanner
- *
+ * @brief Classe du scanner. Permet de scanner une pièce et de calibrer le scanner
+ * 
+ * @param context Contexte du scanner
+ * @param servo Servo-moteur
  */
 namespace RoomScanner
 {

@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @file main.cpp
  * @author Jonathan Côté
@@ -80,22 +82,6 @@ void printWifiStatus()
 }
 
 /**
- * @brief Affiche les informations de la requête HTTP
-*/
-void printHttpResponse(HttpClient &client){
-    // code d'état HTTP
-  int etat_http = client.responseStatusCode();
-  Serial.print("Code d'état HTTP : ");
-  Serial.println(etat_http);
-
-  // response
-  String reponse = client.responseBody();
-  Serial.print("Réponse : ");
-  Serial.println(reponse);
-}
-
-
-/**
  * @brief Enregistre le scan (json) dans le fichier capteur.txt
 */
 void saveScanInFile(String scanInJson){
@@ -149,7 +135,6 @@ void sendScanToPI(int maximalVariation)
 
   // tentative d'enregistrement du scan
   client.post("/api/scans",  "application/json" , json);
-  printHttpResponse(client);
 
   // si le PI n'est pas disponible, on sauvegarde le scan dans un fichier
   if(client.responseStatusCode() != 200)
@@ -169,11 +154,10 @@ void sendScanToPI(int maximalVariation)
 void sendInfiltrationToPI()
 {
   client.post("/api/scans/infiltrations", "application/json", "{}");
-  printHttpResponse(client);
 }
 
 /**
- * @brief Vérifie si le scanner a été infiltré
+ * @brief Vérifie si le scanner a été infiltré grace à la luminosité
  * 
  * @return true  si le scanner a été infiltré
  * @return false  si le scanner n'a pas été infiltré
@@ -284,6 +268,7 @@ void setup()
 
   delay(2000);
 
+  // Fait un scan afin de calibrer le scanner
   scanner->calibrate();
 }
 
@@ -292,12 +277,14 @@ void loop()
   unsigned long millisActu = millis();
   bool delaiDepasse = millisActu - lastScanMillis > scanDelayMillis;
 
+  // si le PI a envoyé une requête pour lancer un scan ou si le délai est dépassé
   if (hasReceivedScanRequest() || delaiDepasse)
   {
     startScan();
     lastScanMillis = millisActu;
   }
 
+  // vérifie si le scanner a été infiltré
   if(getCurrentBoxState() != boxIsOpen) {
 
     boxIsOpen = !boxIsOpen;
