@@ -31,7 +31,7 @@ WiFiServer server(80);
 
 // ip du PI
 char ip[] = "172.20.10.2";
-int port = 45455;
+int port = 45456;
 
 HttpClient client = HttpClient(wifi, ip, port);
 
@@ -49,7 +49,7 @@ char* scannerDataFileName = "capteur.txt";
 #define ECHO_PIN 6
 #define SERVO_PIN 9
 #define LUMINOSITY_PIN A0
-#define SD_CARD_PIN 4
+#define SD_CARD_PIN 5
 
 unsigned long scanDelayMillis = 1000 * 60 * 5;
 unsigned long lastScanMillis = 0;
@@ -89,6 +89,7 @@ void saveScanInFile(String scanInJson){
 
     if (scannerDataFile) {
       scannerDataFile.println(scanInJson);
+      Serial.println(scanInJson);
       scannerDataFile.close();
     } else {
       Serial.println("Impossible d'ouvrir le fichier.");
@@ -139,7 +140,10 @@ void sendScanToPI(int maximalVariation)
   // si le PI n'est pas disponible, on sauvegarde le scan dans un fichier
   if(client.responseStatusCode() != 200)
   {
+    Serial.print("(SCAN) Le PI n'est pas disponible : ");
+    Serial.println(client.responseStatusCode());
     saveScanInFile(json);
+    Serial.println("Scan enregistré dans le fichier");
   }
   else {
     syncScanFile();
@@ -154,6 +158,12 @@ void sendScanToPI(int maximalVariation)
 void sendInfiltrationToPI()
 {
   client.post("/api/scans/infiltrations", "application/json", "{}");
+
+  if(client.responseStatusCode() != 200)
+  {
+    Serial.print("(INFILTRATION) Le PI n'est pas disponible : ");
+    Serial.println(client.responseStatusCode());
+  }
 }
 
 /**
