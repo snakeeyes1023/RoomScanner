@@ -1,0 +1,1 @@
+Voir la documentation swagger (il y un lien sur la page d'accueil de l'application)
