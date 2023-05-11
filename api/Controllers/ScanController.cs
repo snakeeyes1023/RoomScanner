@@ -46,7 +46,7 @@ namespace RoomScannerWeb.Controllers
         /// <returns></returns>
         /// <exception cref="System.IO.InvalidDataException">The modal is invalid</exception>
         [HttpPost]
-        [ActionName("")]
+        [ActionName("add")]
         public IActionResult AppendScanResult(ScanResultPost model)
         {
             try

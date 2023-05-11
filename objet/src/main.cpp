@@ -40,7 +40,7 @@ RoomScanner::Scanner *scanner;
 Servo servo;
 
 File scannerDataFile;
-char* scannerDataFileName = "capteur.txt";
+char *scannerDataFileName = "capteur.txt";
 
 /**
  * define the pins
@@ -83,42 +83,21 @@ void printWifiStatus()
 
 /**
  * @brief Enregistre le scan (json) dans le fichier capteur.txt
-*/
-void saveScanInFile(String scanInJson){
-    scannerDataFile = SD.open(scannerDataFileName, FILE_WRITE);
+ */
+void saveScanInFile(String scanInJson)
+{
+  scannerDataFile = SD.open(scannerDataFileName, FILE_WRITE);
 
-    if (scannerDataFile) {
-      scannerDataFile.println(scanInJson);
-      Serial.println(scanInJson);
-      scannerDataFile.close();
-    } else {
-      Serial.println("Impossible d'ouvrir le fichier.");
-    }
-}
-
-/**
- * @brief Synchronise le fichier capteur.txt avec le PI
-*/
-void syncScanFile() {
-    scannerDataFile = SD.open(scannerDataFileName, FILE_READ);
-
-    if (scannerDataFile) {
-      while (scannerDataFile.available()) {
-        String line = scannerDataFile.readStringUntil('\n');
-        
-        client.post("/api/scans",  "application/json" , line);
-
-        if(client.responseStatusCode() != 200)
-        {
-          scannerDataFile.close();
-          return;
-        }
-      }
-      scannerDataFile.close();
-      SD.remove(scannerDataFileName);
-    } else {
-      Serial.println("Impossible d'ouvrir le fichier");
-    }
+  if (scannerDataFile)
+  {
+    scannerDataFile.println(scanInJson);
+    Serial.println(scanInJson);
+    scannerDataFile.close();
+  }
+  else
+  {
+    Serial.println("Impossible d'ouvrir le fichier.");
+  }
 }
 
 /**
@@ -126,49 +105,81 @@ void syncScanFile() {
  * @author Jonathan Côté
  * Inspiré de Christiane Lagacé <christiane.lagace@hotmail.com>
  */
-void sendScanToPI(int maximalVariation)
+bool sendScanToPI(String json)
 {
-  // preparation du json de scan
-  DynamicJsonDocument doc(2048);
-  doc["maximalVariationDistance"] = maximalVariation;
-  String json = "";
-  serializeJson(doc, json);
-
   // tentative d'enregistrement du scan
-  client.post("/api/scans",  "application/json" , json);
+  String contentType = "application/json";
 
-  // si le PI n'est pas disponible, on sauvegarde le scan dans un fichier
-  if(client.responseStatusCode() != 200)
+  client.beginRequest();
+  client.post("/api/scans/add");
+  client.sendHeader("Content-Type", contentType);
+  client.sendHeader("Content-Length", json.length());
+  client.beginBody();
+  client.print(json);
+  client.endRequest();
+
+  int statusCode = client.responseStatusCode();
+  String response = client.responseBody();
+  Serial.println(response);
+
+  return statusCode == 200;
+}
+
+/**
+ * @brief Synchronise le fichier capteur.txt avec le PI
+ */
+void syncScanFile()
+{
+  scannerDataFile = SD.open(scannerDataFileName, FILE_READ);
+
+  if (scannerDataFile)
   {
-    Serial.print("(SCAN) Le PI n'est pas disponible : ");
-    Serial.println(client.responseStatusCode());
-    saveScanInFile(json);
-    Serial.println("Scan enregistré dans le fichier");
+    while (scannerDataFile.available())
+    {
+      String line = scannerDataFile.readStringUntil('\n');
+
+      if (!sendScanToPI(line))
+      {
+        scannerDataFile.close();
+        return;
+      }
+    }
+    scannerDataFile.close();
+    SD.remove(scannerDataFileName);
   }
-  else {
-    syncScanFile();
+  else
+  {
+    Serial.println("Impossible d'ouvrir le fichier");
   }
 }
 
-
 /**
  * @brief Envoie une requête au PI pour indiquer que le scanner a été infiltré
- * 
+ *
  */
-void sendInfiltrationToPI()
+bool sendInfiltrationToPI()
 {
-  client.post("/api/scans/infiltrations", "application/json", "{}");
+  // tentative d'enregistrement du scan
+  String contentType = "application/json";
 
-  if(client.responseStatusCode() != 200)
-  {
-    Serial.print("(INFILTRATION) Le PI n'est pas disponible : ");
-    Serial.println(client.responseStatusCode());
-  }
+  client.beginRequest();
+  client.post("/api/scans/infiltrations");
+  client.sendHeader("Content-Type", contentType);
+  client.sendHeader("Content-Length", 2);
+  client.beginBody();
+  client.print("{}");
+  client.endRequest();
+
+  int statusCode = client.responseStatusCode();
+  String response = client.responseBody();
+  Serial.println(response);
+
+  return statusCode == 200;
 }
 
 /**
  * @brief Vérifie si le scanner a été infiltré grace à la luminosité
- * 
+ *
  * @return true  si le scanner a été infiltré
  * @return false  si le scanner n'a pas été infiltré
  */
@@ -236,13 +247,27 @@ bool hasReceivedScanRequest()
 
 /**
  * @brief Lance un scan et envoie les données au PI
-**/
-void startScan() {
+ **/
+void startScan()
+{
   RoomScanner::ScanResult scanResult = scanner->scan();
 
-  int maxVariance = scanner->getMaximalVariation(scanResult);
+  // preparation du json de scan
+  DynamicJsonDocument doc(2048);
+  doc["MaximalVariationDistance"] = scanner->getMaximalVariation(scanResult);
+  String json = "";
+  serializeJson(doc, json);
 
-  sendScanToPI(maxVariance);
+  if (sendScanToPI(json))
+  {
+    syncScanFile();
+  }
+  else
+  {
+    Serial.print("(SCAN) Le PI n'est pas disponible : ");
+    saveScanInFile(json);
+    Serial.println("Scan enregistré dans le fichier");
+  }
 }
 
 void setup()
@@ -254,10 +279,12 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
-  
-  if (!SD.begin(SD_CARD_PIN)) {
+
+  if (!SD.begin(SD_CARD_PIN))
+  {
     Serial.println("Impossible de communiquer avec le lecteur de carte.");
-    while (1);
+    while (1)
+      ;
   }
 
   // branchement au Wi-Fi
@@ -295,13 +322,17 @@ void loop()
   }
 
   // vérifie si le scanner a été infiltré
-  if(getCurrentBoxState() != boxIsOpen) {
+  if (getCurrentBoxState() != boxIsOpen)
+  {
 
     boxIsOpen = !boxIsOpen;
 
     if (boxIsOpen)
     {
-      sendInfiltrationToPI();
+      if (!sendInfiltrationToPI())
+      {
+        Serial.print("(INFILTRATION) Le PI n'est pas disponible : ");
+      }
     }
   }
 }
